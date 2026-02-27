@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mandoodle — Zen Symmetry Art</title>
+<meta name="description" content="Mandoodle — draw once, mirror everywhere. Create beautiful mandala art with radial symmetry. Free, no signup, zen vibes only.">
+<meta property="og:title" content="Mandoodle — Zen Symmetry Art">
+<meta property="og:description" content="Draw once, mirror everywhere. Create beautiful mandala art instantly.">
+<meta name="theme-color" content="#111118">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: #111118; font-family: 'Quicksand', sans-serif;
+    height: 100%; overflow: hidden; color: #ccc;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body { display: flex; flex-direction: column; }
+
+  /* ===== WELCOME SCREEN ===== */
+  #welcome {
+    position: fixed; inset: 0; z-index: 100;
+    background: #111118;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  #welcome.hidden { opacity: 0; pointer-events: none; transform: scale(1.05); }
+
+  #welcome-inner {
+    text-align: center; max-width: 440px; padding: 30px 24px;
+  }
+
+  #welcome-inner .logo {
+    font: 700 42px 'Quicksand', sans-serif;
+    color: rgba(180,150,255,0.35);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  #welcome-inner .tagline {
+    font: 300 14px 'Quicksand', sans-serif;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 4px;
+    margin-bottom: 36px;
+  }
+
+  #welcome-inner .desc {
+    font: 400 14px/1.9 'Quicksand', sans-serif;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 32px;
+    letter-spacing: 0.3px;
+  }
+
+  #welcome-inner .name-section {
+    margin-bottom: 28px;
+  }
+  #welcome-inner .name-label {
+    font: 600 10px 'Quicksand', sans-serif;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+  #name-input {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(130,100,220,0.25);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font: 400 16px 'Quicksand', sans-serif;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    width: 100%;
+    max-width: 280px;
+    outline: none;
+    transition: border-color 0.3s;
+    -webkit-user-select: text; user-select: text;
+  }
+  #name-input:focus {
+    border-color: rgba(130,100,220,0.5);
+  }
+  #name-input::placeholder {
+    color: rgba(255,255,255,0.12);
+  }
+
+  #enter-btn {
+    background: rgba(130,80,255,0.15);
+    border: 1.5px solid rgba(130,80,255,0.3);
+    color: rgba(200,170,255,0.7);
+    font: 600 14px 'Quicksand', sans-serif;
+    padding: 14px 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.25s;
+  }
+  #enter-btn:hover, #enter-btn:active {
+    background: rgba(130,80,255,0.28);
+    border-color: rgba(130,80,255,0.5);
+    color: rgba(220,200,255,0.95);
+    transform: scale(1.02);
+  }
+
+  #welcome-inner .footer-note {
+    margin-top: 28px;
+    font: 300 10px 'Quicksand', sans-serif;
+    color: rgba(255,255,255,0.08);
+    letter-spacing: 1.5px;
+  }
+
+  /* Decorative rings behind welcome */
+  #welcome-bg {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px; height: 500px;
+    pointer-events: none;
+  }
+
+  /* ===== GAME UI ===== */
+  #game-ui { display: none; flex-direction: column; height: 100%; }
+  #game-ui.visible { display: flex; }
+
+  #canvas-wrap {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    width: 100%; min-height: 0; padding: 10px;
+  }
+  #canvas-ring {
+    position: relative; border-radius: 50%;
+    border: 2px solid rgba(130,100,220,0.35);
+    box-shadow: 0 0 20px rgba(130,80,255,0.12), 0 0 60px rgba(100,60,200,0.06), inset 0 0 30px rgba(100,60,200,0.05);
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+  }
+  canvas#main { display: block; border-radius: 50%; cursor: crosshair; touch-action: none; }
+
+  #brand {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 10; pointer-events: none; text-align: center;
+  }
+  #brand h1 { font: 600 13px 'Quicksand', sans-serif; color: rgba(180,150,255,0.15); letter-spacing: 5px; text-transform: uppercase; }
+  #brand p { font-size: 9px; color: rgba(255,255,255,0.06); letter-spacing: 2px; margin-top: 1px; }
+
+  /* TOOLBAR */
+  #toolbar {
+    width: 100%; background: rgba(16,16,24,0.97);
+    border-top: 1px solid rgba(130,100,220,0.15);
+    padding: 8px 8px 12px; display: flex; flex-direction: column;
+    gap: 6px; align-items: center; flex-shrink: 0;
+  }
+  .tool-row {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    flex-wrap: nowrap; width: 100%; max-width: 620px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; padding: 2px 0;
+  }
+  .tool-row::-webkit-scrollbar { display: none; }
+  .tool-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.06); flex-shrink: 0; }
+  .tool-label { font-size: 9px; color: rgba(255,255,255,0.25); letter-spacing: 1.5px; text-transform: uppercase; flex-shrink: 0; white-space: nowrap; }
+
+  .swatch {
+    width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid transparent;
+    cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+  }
+  .swatch.active { border-color: white; box-shadow: 0 0 10px rgba(255,255,255,0.3); transform: scale(1.1); }
+  #color-input { width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.15); border-radius: 50%; cursor: pointer; background: none; padding: 0; flex-shrink: 0; }
+
+  .btn {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.45); font: 600 11px 'Quicksand', sans-serif;
+    padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap; flex-shrink: 0; min-height: 36px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .btn:active { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+  .btn.active { background: rgba(130,80,255,0.2); border-color: rgba(130,80,255,0.45); color: rgba(200,170,255,0.85); }
+
+  .slider-group { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  input[type="range"] { width: 55px; height: 6px; -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: rgba(180,140,255,0.65); cursor: pointer; border: 2px solid rgba(255,255,255,0.15); }
+
+  .seg-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.35); font: 700 11px 'Quicksand', sans-serif;
+    cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .seg-btn.active { background: rgba(130,80,255,0.25); border-color: rgba(130,80,255,0.5); color: rgba(210,180,255,0.95); }
+
+  .btn-save { background: rgba(130,80,255,0.18); border-color: rgba(130,80,255,0.35); color: rgba(200,170,255,0.75); font-weight: 700; }
+  .btn-save:active { background: rgba(130,80,255,0.35); color: rgba(220,200,255,0.95); }
+
+  @media (max-width: 500px) {
+    #canvas-wrap { padding: 6px; }
+    #toolbar { padding: 6px 4px 10px; gap: 5px; }
+    .tool-row { gap: 4px; justify-content: flex-start; padding: 2px 4px; }
+    .btn { padding: 7px 9px; font-size: 10px; min-height: 34px; }
+    .swatch { width: 26px; height: 26px; }
+    .seg-btn { width: 30px; height: 30px; font-size: 10px; }
+    input[type="range"] { width: 45px; }
+    #color-input { width: 26px; height: 26px; }
+    #welcome-inner .logo { font-size: 32px; letter-spacing: 6px; }
+    #welcome-inner .desc { font-size: 13px; padding: 0 10px; }
+    #welcome-inner { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== WELCOME SCREEN ===== -->
+<div id="welcome">
+  <canvas id="welcome-bg"></canvas>
+  <div id="welcome-inner">
+    <div class="logo">Mandoodle</div>
+    <div class="tagline">draw · breathe · create</div>
+
+    <div class="desc">
+      One stroke, eight reflections. Draw a single line and watch it
+      blossom into a complete mandala pattern. No rules, no mistakes,
+      no pressure. Just you, the circle, and whatever your hand feels
+      like doing. The kind of thing that makes five minutes disappear
+      in the best way possible.
+    </div>
+
+    <div class="name-section">
+      <label class="name-label">your artist name</label>
+      <input type="text" id="name-input" placeholder="enter your name" maxlength="30" autocomplete="off">
+    </div>
+
+    <button id="enter-btn">Begin</button>
+
+    <div class="footer-note">your name will be signed on your saved artwork</div>
+  </div>
+</div>
+
+<!-- ===== GAME UI ===== -->
+<div id="game-ui">
+  <div id="brand">
+    <h1>Mandoodle</h1>
+    <p>draw · breathe · create</p>
+  </div>
+
+  <div id="canvas-wrap">
+    <div id="canvas-ring">
+      <canvas id="main"></canvas>
+    </div>
+  </div>
+
+  <div id="toolbar">
+    <div class="tool-row">
+      <span class="tool-label">Color</span>
+      <div class="swatch active" style="background:#fff" data-color="#ffffff"></div>
+      <div class="swatch" style="background:#FF6B6B" data-color="#FF6B6B"></div>
+      <div class="swatch" style="background:#FBBF24" data-color="#FBBF24"></div>
+      <div class="swatch" style="background:#34D399" data-color="#34D399"></div>
+      <div class="swatch" style="background:#38BDF8" data-color="#38BDF8"></div>
+      <div class="swatch" style="background:#A855F7" data-color="#A855F7"></div>
+      <div class="swatch" style="background:#F472B6" data-color="#F472B6"></div>
+      <input type="color" id="color-input" value="#ffffff" title="Custom color">
+      <div class="tool-sep"></div>
+      <div class="slider-group">
+        <span class="tool-label">Size</span>
+        <input type="range" id="brush-size" min="1" max="20" value="3">
+      </div>
+      <div class="slider-group">
+        <span class="tool-label">Opacity</span>
+        <input type="range" id="brush-opacity" min="10" max="100" value="100">
+      </div>
+    </div>
+
+    <div class="tool-row">
+      <span class="tool-label">Slices</span>
+      <button class="seg-btn" data-seg="4">4</button>
+      <button class="seg-btn" data-seg="6">6</button>
+      <button class="seg-btn active" data-seg="8">8</button>
+      <button class="seg-btn" data-seg="12">12</button>
+      <button class="seg-btn" data-seg="16">16</button>
+      <div class="tool-sep"></div>
+      <button class="btn" id="btn-rainbow">Rainbow</button>
+      <button class="btn" id="btn-glow">Glow</button>
+      <button class="btn" id="btn-mirror">Mirror</button>
+      <button class="btn active" id="btn-guides">Grid</button>
+    </div>
+
+    <div class="tool-row">
+      <button class="btn" id="btn-undo">Undo</button>
+      <button class="btn" id="btn-redo">Redo</button>
+      <button class="btn" id="btn-clear">Clear</button>
+      <button class="btn" id="btn-bg">Background</button>
+      <button class="btn btn-save" id="btn-download">Save PNG</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== WELCOME SCREEN ANIMATION =====
+var wBg = document.getElementById('welcome-bg');
+var wCtx = wBg.getContext('2d');
+var welcomeEl = document.getElementById('welcome');
+var gameUI = document.getElementById('game-ui');
+var nameInput = document.getElementById('name-input');
+var enterBtn = document.getElementById('enter-btn');
+var artistName = '';
+
+function drawWelcomeBg() {
+  var w = window.innerWidth, h = window.innerHeight;
+  wBg.width = w; wBg.height = h;
+  var cx = w/2, cy = h/2;
+  wCtx.clearRect(0,0,w,h);
+
+  // Subtle decorative rings
+  for (var i = 1; i <= 6; i++) {
+    var r = 40 + i * 55;
+    wCtx.beginPath();
+    wCtx.arc(cx, cy, r, 0, Math.PI*2);
+    wCtx.strokeStyle = 'rgba(130,100,220,' + (0.04 + (6-i)*0.005).toFixed(3) + ')';
+    wCtx.lineWidth = 0.8;
+    wCtx.stroke();
+  }
+
+  // Slice lines
+  for (var i = 0; i < 8; i++) {
+    var a = (i/8)*Math.PI*2;
+    wCtx.beginPath();
+    wCtx.moveTo(cx, cy);
+    wCtx.lineTo(cx + Math.cos(a)*380, cy + Math.sin(a)*380);
+    wCtx.strokeStyle = 'rgba(130,100,220,0.03)';
+    wCtx.lineWidth = 0.5;
+    wCtx.stroke();
+  }
+
+  // Center dot
+  wCtx.beginPath(); wCtx.arc(cx, cy, 3, 0, Math.PI*2);
+  wCtx.fillStyle = 'rgba(130,100,220,0.08)';
+  wCtx.fill();
+}
+drawWelcomeBg();
+window.addEventListener('resize', drawWelcomeBg);
+
+// Enter game
+function enterGame() {
+  artistName = nameInput.value.trim();
+  welcomeEl.classList.add('hidden');
+  gameUI.classList.add('visible');
+  setTimeout(function() {
+    welcomeEl.style.display = 'none';
+    resizeCanvas();
+  }, 800);
+}
+
+enterBtn.addEventListener('click', enterGame);
+nameInput.addEventListener('keydown', function(e) {
+  if (e.code === 'Enter') enterGame();
+});
+
+// ===== GAME ENGINE =====
+var canvas = document.getElementById('main');
+var ctx = canvas.getContext('2d');
+var wrap = document.getElementById('canvas-wrap');
+var ringEl = document.getElementById('canvas-ring');
+
+var SIZE;
+function resizeCanvas() {
+  var wW = wrap.clientWidth - 20, wH = wrap.clientHeight - 20;
+  SIZE = Math.min(wW, wH);
+  SIZE = Math.min(SIZE, 650);
+  SIZE = Math.max(SIZE, 260);
+  SIZE = Math.floor(SIZE/2)*2;
+  canvas.width = SIZE; canvas.height = SIZE;
+  canvas.style.width = SIZE+'px'; canvas.style.height = SIZE+'px';
+  ringEl.style.width = (SIZE+4)+'px'; ringEl.style.height = (SIZE+4)+'px';
+  redrawAll();
+}
+
+var currentColor = '#ffffff';
+var brushSize = 3;
+var brushOpacity = 1;
+var segments = 8;
+var rainbowMode = false;
+var glowMode = false;
+var mirrorMode = false;
+var showGuides = true;
+var darkBg = true;
+var rainbowHue = 0;
+var drawing = false;
+var lastX = null, lastY = null;
+
+var undoStack = [];
+var undoIndex = -1;
+
+function saveState() {
+  undoStack = undoStack.slice(0, undoIndex+1);
+  undoStack.push(canvas.toDataURL());
+  if (undoStack.length > 30) undoStack.shift();
+  undoIndex = undoStack.length-1;
+}
+function undo() { if(undoIndex>0){undoIndex--;restoreState(undoIndex);} }
+function redo() { if(undoIndex<undoStack.length-1){undoIndex++;restoreState(undoIndex);} }
+function restoreState(idx) {
+  var img = new Image();
+  img.onload = function() { ctx.clearRect(0,0,SIZE,SIZE); fillBg(); ctx.drawImage(img,0,0); if(showGuides)drawGuides(); };
+  img.src = undoStack[idx];
+}
+function redrawAll() {
+  if(undoIndex>=0 && undoStack[undoIndex]) restoreState(undoIndex);
+  else { fillBg(); if(showGuides)drawGuides(); }
+}
+
+function fillBg() {
+  ctx.fillStyle = darkBg ? '#111118' : '#f5f0eb';
+  ctx.fillRect(0,0,SIZE,SIZE);
+}
+
+function drawGuides() {
+  var cx=SIZE/2, cy=SIZE/2, maxR=SIZE/2-2;
+  ctx.save();
+  for(var r=40; r<=maxR; r+=40) {
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    if(r%120===0) { ctx.strokeStyle=darkBg?'rgba(130,100,220,0.22)':'rgba(80,50,150,0.18)'; ctx.lineWidth=1.3; }
+    else { ctx.strokeStyle=darkBg?'rgba(130,100,220,0.1)':'rgba(80,50,150,0.09)'; ctx.lineWidth=0.8; }
+    ctx.stroke();
+  }
+  ctx.lineWidth=1.2;
+  ctx.strokeStyle=darkBg?'rgba(130,100,220,0.25)':'rgba(80,50,150,0.22)';
+  for(var i=0;i<segments;i++) {
+    var a=(i/segments)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.arc(cx,cy,maxR,0,Math.PI*2);
+  ctx.strokeStyle=darkBg?'rgba(130,100,220,0.3)':'rgba(80,50,150,0.25)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2);
+  ctx.fillStyle=darkBg?'rgba(130,100,220,0.35)':'rgba(80,50,150,0.3)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,1.5,0,Math.PI*2);
+  ctx.fillStyle=darkBg?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.3)'; ctx.fill();
+  ctx.restore();
+}
+
+var smX=null, smY=null;
+function smoothPt(x,y) {
+  if(smX===null){smX=x;smY=y;return{x:x,y:y};}
+  smX+=(x-smX)*0.65; smY+=(y-smY)*0.65;
+  return{x:smX,y:smY};
+}
+
+function drawSym(x1,y1,x2,y2) {
+  var cx=SIZE/2,cy=SIZE/2;
+  var rx1=x1-cx,ry1=y1-cy,rx2=x2-cx,ry2=y2-cy;
+  var color=currentColor;
+  if(rainbowMode){rainbowHue=(rainbowHue+0.8)%360;color='hsl('+Math.round(rainbowHue)+',80%,60%)';}
+  ctx.save();
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.lineWidth=brushSize; ctx.globalAlpha=brushOpacity;
+  if(glowMode){ctx.shadowColor=color;ctx.shadowBlur=brushSize*3;}
+  for(var i=0;i<segments;i++){
+    var a=(i/segments)*Math.PI*2;
+    var cos=Math.cos(a),sin=Math.sin(a);
+    ctx.strokeStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(cos*rx1-sin*ry1+cx,sin*rx1+cos*ry1+cy);
+    ctx.lineTo(cos*rx2-sin*ry2+cx,sin*rx2+cos*ry2+cy);
+    ctx.stroke();
+    if(mirrorMode){
+      ctx.beginPath();
+      ctx.moveTo(cos*rx1+sin*ry1+cx,-sin*rx1+cos*ry1+cy);
+      ctx.lineTo(cos*rx2+sin*ry2+cx,-sin*rx2+cos*ry2+cy);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function getPos(e) {
+  var rect=canvas.getBoundingClientRect();
+  var sx=SIZE/rect.width,sy=SIZE/rect.height;
+  var cx,cy;
+  if(e.touches&&e.touches.length>0){cx=e.touches[0].clientX;cy=e.touches[0].clientY;}
+  else{cx=e.clientX;cy=e.clientY;}
+  return{x:(cx-rect.left)*sx,y:(cy-rect.top)*sy};
+}
+function onStart(e){e.preventDefault();e.stopPropagation();drawing=true;var p=getPos(e);lastX=p.x;lastY=p.y;smX=p.x;smY=p.y;drawSym(p.x,p.y,p.x+0.1,p.y+0.1);}
+function onMove(e){e.preventDefault();e.stopPropagation();if(!drawing)return;var p=getPos(e);var sp=smoothPt(p.x,p.y);drawSym(lastX,lastY,sp.x,sp.y);lastX=sp.x;lastY=sp.y;}
+function onEnd(){if(drawing){drawing=false;lastX=null;lastY=null;smX=null;smY=null;saveState();}}
+
+canvas.addEventListener('mousedown',onStart);
+canvas.addEventListener('mousemove',onMove);
+document.addEventListener('mouseup',onEnd);
+canvas.addEventListener('touchstart',onStart,{passive:false});
+canvas.addEventListener('touchmove',onMove,{passive:false});
+document.addEventListener('touchend',onEnd);
+
+// TOOLBAR
+document.querySelectorAll('.swatch').forEach(function(sw){
+  sw.addEventListener('click',function(){
+    document.querySelectorAll('.swatch').forEach(function(s){s.classList.remove('active')});
+    sw.classList.add('active');
+    currentColor=sw.dataset.color;
+    document.getElementById('color-input').value=currentColor;
+  });
+});
+document.getElementById('color-input').addEventListener('input',function(e){
+  currentColor=e.target.value;
+  document.querySelectorAll('.swatch').forEach(function(s){s.classList.remove('active')});
+});
+document.getElementById('brush-size').addEventListener('input',function(e){brushSize=parseInt(e.target.value);});
+document.getElementById('brush-opacity').addEventListener('input',function(e){brushOpacity=parseInt(e.target.value)/100;});
+
+document.querySelectorAll('.seg-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.seg-btn').forEach(function(b){b.classList.remove('active')});
+    btn.classList.add('active');
+    segments=parseInt(btn.dataset.seg);
+    if(showGuides)redrawAll();
+  });
+});
+
+document.getElementById('btn-rainbow').addEventListener('click',function(){rainbowMode=!rainbowMode;this.classList.toggle('active');});
+document.getElementById('btn-glow').addEventListener('click',function(){glowMode=!glowMode;this.classList.toggle('active');});
+document.getElementById('btn-mirror').addEventListener('click',function(){mirrorMode=!mirrorMode;this.classList.toggle('active');});
+document.getElementById('btn-guides').addEventListener('click',function(){showGuides=!showGuides;this.classList.toggle('active');redrawAll();});
+document.getElementById('btn-undo').addEventListener('click',undo);
+document.getElementById('btn-redo').addEventListener('click',redo);
+document.getElementById('btn-clear').addEventListener('click',function(){fillBg();if(showGuides)drawGuides();saveState();});
+
+document.getElementById('btn-bg').addEventListener('click',function(){
+  darkBg=!darkBg;
+  if(undoIndex>=0){
+    var img=new Image();
+    img.onload=function(){fillBg();ctx.drawImage(img,0,0);if(showGuides)drawGuides();saveState();};
+    img.src=undoStack[undoIndex];
+  } else {fillBg();if(showGuides)drawGuides();saveState();}
+});
+
+// ===== DOWNLOAD WITH WATERMARK =====
+document.getElementById('btn-download').addEventListener('click',function(){
+  // Export canvas is taller to include watermark bar
+  var pad = 48;
+  var tc = document.createElement('canvas');
+  tc.width = SIZE;
+  tc.height = SIZE + pad;
+  var tctx = tc.getContext('2d');
+
+  function addWatermarkAndSave() {
+    // Watermark bar at bottom
+    tctx.fillStyle = darkBg ? '#0c0c12' : '#e8e2da';
+    tctx.fillRect(0, SIZE, SIZE, pad);
+
+    // Divider line
+    tctx.beginPath();
+    tctx.moveTo(SIZE*0.15, SIZE + 1);
+    tctx.lineTo(SIZE*0.85, SIZE + 1);
+    tctx.strokeStyle = darkBg ? 'rgba(130,100,220,0.15)' : 'rgba(80,50,150,0.12)';
+    tctx.lineWidth = 0.5;
+    tctx.stroke();
+
+    // "Created by" text
+    var displayName = artistName || 'Anonymous Artist';
+    tctx.font = '600 ' + Math.max(11, Math.round(SIZE * 0.02)) + 'px Quicksand, sans-serif';
+    tctx.textAlign = 'center';
+    tctx.textBaseline = 'middle';
+    tctx.fillStyle = darkBg ? 'rgba(180,150,255,0.3)' : 'rgba(80,50,150,0.3)';
+    tctx.fillText('Created by ' + displayName, SIZE/2, SIZE + pad * 0.38);
+
+    // "Mandoodle" small branding
+    tctx.font = '400 ' + Math.max(8, Math.round(SIZE * 0.014)) + 'px Quicksand, sans-serif';
+    tctx.fillStyle = darkBg ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+    tctx.fillText('mandoodle', SIZE/2, SIZE + pad * 0.72);
+
+    var a = document.createElement('a');
+    a.download = 'mandoodle-' + Date.now() + '.png';
+    a.href = tc.toDataURL('image/png');
+    a.click();
+  }
+
+  if (undoIndex >= 0) {
+    var img = new Image();
+    img.onload = function() {
+      tctx.drawImage(img, 0, 0);
+      addWatermarkAndSave();
+    };
+    img.src = undoStack[undoIndex];
+  } else {
+    tctx.fillStyle = darkBg ? '#111118' : '#f5f0eb';
+    tctx.fillRect(0, 0, SIZE, SIZE);
+    addWatermarkAndSave();
+  }
+});
+
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){e.preventDefault();e.shiftKey?redo():undo();}
+});
+
+// INIT
+window.addEventListener('resize',resizeCanvas);
+</script>
+</body>
+</html>
