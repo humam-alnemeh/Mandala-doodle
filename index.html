@@ -39,7 +39,8 @@
   #canvas-container canvas{position:absolute;top:0;left:0;border-radius:50%}
   #bg-canvas{z-index:1}
   #draw-canvas{z-index:2;cursor:crosshair;touch-action:none}
-  #guide-canvas{z-index:3;pointer-events:none}
+  #preview-canvas{z-index:3;pointer-events:none;border-radius:50%}
+  #guide-canvas{z-index:4;pointer-events:none}
   #brand{position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none}
   #brand h1{font:600 11px 'Quicksand',sans-serif;color:rgba(180,150,255,0.1);letter-spacing:5px;text-transform:uppercase}
 
@@ -132,6 +133,7 @@
     <div id="canvas-container">
       <canvas id="bg-canvas"></canvas>
       <canvas id="draw-canvas"></canvas>
+      <canvas id="preview-canvas"></canvas>
       <canvas id="guide-canvas"></canvas>
     </div>
   </div>
@@ -212,6 +214,7 @@ nameInput.addEventListener('keydown',function(e){if(e.code==='Enter')enterGame()
 var bgCanvas=document.getElementById('bg-canvas'),bgCtx=bgCanvas.getContext('2d');
 var drawCanvas=document.getElementById('draw-canvas'),drawCtx=drawCanvas.getContext('2d');
 var guideCanvas=document.getElementById('guide-canvas'),guideCtx=guideCanvas.getContext('2d');
+var prevCanvas=document.getElementById('preview-canvas'),prevCtx=prevCanvas.getContext('2d');
 var container=document.getElementById('canvas-container'),wrap=document.getElementById('canvas-wrap');
 var toolIndicator=document.getElementById('tool-indicator');
 
@@ -220,7 +223,7 @@ function resizeCanvas(){
   var wW=wrap.clientWidth-8,wH=wrap.clientHeight-8;
   SIZE=Math.min(wW,wH);SIZE=Math.min(SIZE,650);SIZE=Math.max(SIZE,240);SIZE=Math.floor(SIZE/2)*2;
   container.style.width=(SIZE+4)+'px';container.style.height=(SIZE+4)+'px';
-  [bgCanvas,drawCanvas,guideCanvas].forEach(function(c){c.width=SIZE;c.height=SIZE;c.style.width=SIZE+'px';c.style.height=SIZE+'px'});
+  [bgCanvas,drawCanvas,prevCanvas,guideCanvas].forEach(function(c){c.width=SIZE;c.height=SIZE;c.style.width=SIZE+'px';c.style.height=SIZE+'px'});
   fillBg();redrawDrawing();if(showGuides)drawGuidesF();
 }
 
@@ -341,6 +344,35 @@ STAMPS.forEach(function(st,idx){
   });
 });
 
+// ===== SHAPE PREVIEW (draws ghost on guide canvas) =====
+// Preview line on preview canvas (dashed, semi-transparent)
+function previewSymLine(x1,y1,x2,y2){
+  prevCtx.clearRect(0,0,SIZE,SIZE);
+  var cx=SIZE/2,cy=SIZE/2,maxR=SIZE/2-2;var rx1=x1-cx,ry1=y1-cy,rx2=x2-cx,ry2=y2-cy;
+  var color=rainbowMode?'hsl('+Math.round(rainbowHue)+',80%,60%)':currentColor;
+  prevCtx.save();prevCtx.beginPath();prevCtx.arc(cx,cy,maxR,0,Math.PI*2);prevCtx.clip();
+  prevCtx.lineCap='round';prevCtx.lineJoin='round';prevCtx.lineWidth=brushSize;prevCtx.globalAlpha=0.45;
+  prevCtx.setLineDash([6,4]);prevCtx.strokeStyle=color;
+  if(glowMode){prevCtx.shadowColor=color;prevCtx.shadowBlur=brushSize*2}
+  for(var i=0;i<segments;i++){var a=(i/segments)*Math.PI*2,cos=Math.cos(a),sin=Math.sin(a);
+    prevCtx.beginPath();prevCtx.moveTo(cos*rx1-sin*ry1+cx,sin*rx1+cos*ry1+cy);prevCtx.lineTo(cos*rx2-sin*ry2+cx,sin*rx2+cos*ry2+cy);prevCtx.stroke()}
+  prevCtx.restore();
+}
+
+// Preview circle on preview canvas
+function previewSymCircle(ox,oy,r){
+  prevCtx.clearRect(0,0,SIZE,SIZE);
+  var cx=SIZE/2,cy=SIZE/2,maxR=SIZE/2-2;var rx=ox-cx,ry=oy-cy;
+  var color=rainbowMode?'hsl('+Math.round(rainbowHue)+',80%,60%)':currentColor;
+  prevCtx.save();prevCtx.beginPath();prevCtx.arc(cx,cy,maxR,0,Math.PI*2);prevCtx.clip();
+  prevCtx.lineCap='round';prevCtx.lineJoin='round';prevCtx.lineWidth=brushSize;prevCtx.globalAlpha=0.45;
+  prevCtx.setLineDash([6,4]);prevCtx.strokeStyle=color;
+  if(glowMode){prevCtx.shadowColor=color;prevCtx.shadowBlur=brushSize*2}
+  for(var i=0;i<segments;i++){var a=(i/segments)*Math.PI*2,cos=Math.cos(a),sin=Math.sin(a);
+    prevCtx.beginPath();prevCtx.arc(cos*rx-sin*ry+cx,sin*rx+cos*ry+cy,r,0,Math.PI*2);prevCtx.stroke()}
+  prevCtx.restore();
+}
+
 // ===== INPUT =====
 function getPos(e){
   var rect=drawCanvas.getBoundingClientRect();var sx=SIZE/rect.width,sy=SIZE/rect.height;
@@ -365,6 +397,8 @@ function onStart(e){
 
   drawing=true;lastX=p.x;lastY=p.y;smX=p.x;smY=p.y;shapeStartX=p.x;shapeStartY=p.y;
 
+  if(activeTool==='line'||activeTool==='circle'){/* preview starts on drag */}
+
   if(activeTool==='draw'){drawSymLine(p.x,p.y,p.x+0.1,p.y+0.1)}
   else if(activeTool==='eraser'){eraseSymLine(p.x,p.y,p.x+0.1,p.y+0.1)}
   else if(activeTool==='scatter'){scatterSym(p.x,p.y)}
@@ -383,16 +417,17 @@ function onMove(e){
   if(activeTool==='draw'){drawSymLine(lastX,lastY,sp.x,sp.y);lastX=sp.x;lastY=sp.y}
   else if(activeTool==='eraser'){eraseSymLine(lastX,lastY,sp.x,sp.y);lastX=sp.x;lastY=sp.y}
   else if(activeTool==='scatter'){scatterSym(sp.x,sp.y);lastX=sp.x;lastY=sp.y}
-  // line/circle: no live drawing, just track endpoint
-  else if(activeTool==='line'||activeTool==='circle'){lastX=sp.x;lastY=sp.y}
+  // line/circle: show live preview on guide canvas
+  else if(activeTool==='line'){lastX=sp.x;lastY=sp.y;previewSymLine(shapeStartX,shapeStartY,sp.x,sp.y)}
+  else if(activeTool==='circle'){lastX=sp.x;lastY=sp.y;var pdx=sp.x-shapeStartX,pdy=sp.y-shapeStartY;previewSymCircle(shapeStartX,shapeStartY,Math.sqrt(pdx*pdx+pdy*pdy))}
 }
 
 function onEnd(e){
   if(isPinching){if(!e.touches||e.touches.length<2)isPinching=false;return}
   if(!drawing)return;drawing=false;
-  // For shape tools, draw the final shape
-  if(activeTool==='line'){drawSymLine(shapeStartX,shapeStartY,lastX,lastY)}
-  else if(activeTool==='circle'){var dx=lastX-shapeStartX,dy=lastY-shapeStartY;var r=Math.sqrt(dx*dx+dy*dy);drawSymCircle(shapeStartX,shapeStartY,r)}
+  // For shape tools, clear preview then draw the final shape
+  if(activeTool==='line'){prevCtx.clearRect(0,0,SIZE,SIZE);drawSymLine(shapeStartX,shapeStartY,lastX,lastY)}
+  else if(activeTool==='circle'){prevCtx.clearRect(0,0,SIZE,SIZE);var dx=lastX-shapeStartX,dy=lastY-shapeStartY;var r=Math.sqrt(dx*dx+dy*dy);drawSymCircle(shapeStartX,shapeStartY,r)}
   lastX=null;lastY=null;smX=null;smY=null;saveState();
 }
 
