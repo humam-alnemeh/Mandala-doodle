@@ -61,10 +61,30 @@
   .btn.active{background:rgba(130,80,255,0.2);border-color:rgba(130,80,255,0.45);color:rgba(200,170,255,0.85)}
   .seg-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.35);font:700 10px 'Quicksand',sans-serif;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
   .seg-btn.active{background:rgba(130,80,255,0.25);border-color:rgba(130,80,255,0.5);color:rgba(210,180,255,0.95)}
-  input[type="range"]{width:48px;height:6px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);border-radius:3px;outline:none}
-  input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:rgba(180,140,255,0.65);cursor:pointer;border:2px solid rgba(255,255,255,0.15)}
+  input[type="range"]{width:200px;height:12px;-webkit-appearance:none;appearance:none;background:rgba(130,100,220,0.2);border-radius:6px;outline:none;border:1px solid rgba(130,100,220,0.15)}
+  input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;border-radius:50%;background:rgba(180,140,255,0.8);cursor:pointer;border:3px solid rgba(255,255,255,0.3);box-shadow:0 0 10px rgba(130,80,255,0.4)}
   .btn-save{background:rgba(130,80,255,0.18);border-color:rgba(130,80,255,0.35);color:rgba(200,170,255,0.75);font-weight:700}
   .btn-tools{background:rgba(255,180,50,0.1);border-color:rgba(255,180,50,0.25);color:rgba(255,210,130,0.65)}
+
+  /* Color picker — rainbow ring */
+  #color-picker-wrap{width:30px;height:30px;border-radius:50%;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);padding:3px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative}
+  #color-picker-wrap input{width:24px;height:24px;border:2px solid rgba(20,20,30,0.9);border-radius:50%;cursor:pointer;background:none;padding:0;display:block}
+
+  /* Size button — shows a dot preview */
+  #btn-size{gap:6px;padding:6px 12px;min-width:60px;justify-content:center}
+  #size-preview-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);display:inline-block;transition:all 0.15s}
+  #size-val{font-size:11px}
+
+  /* Floating size popup */
+  #size-popup{position:fixed;left:50%;transform:translateX(-50%);bottom:160px;z-index:60;background:rgba(14,14,22,0.96);border:1px solid rgba(130,100,220,0.25);border-radius:14px;padding:16px 20px 18px;display:none;flex-direction:column;align-items:center;gap:10px;backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(0,0,0,0.5);min-width:260px}
+  #size-popup.open{display:flex}
+  #size-popup .popup-title{font:600 9px 'Quicksand',sans-serif;color:rgba(255,255,255,0.2);letter-spacing:2px;text-transform:uppercase}
+  #size-popup .popup-val{font:700 22px 'Quicksand',sans-serif;color:rgba(200,170,255,0.6)}
+  #size-popup input[type="range"]{width:200px;height:12px;-webkit-appearance:none;appearance:none;background:rgba(130,100,220,0.2);border-radius:6px;outline:none;border:1px solid rgba(130,100,220,0.15)}
+  #size-popup input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;border-radius:50%;background:rgba(180,140,255,0.8);cursor:pointer;border:3px solid rgba(255,255,255,0.3);box-shadow:0 0 10px rgba(130,80,255,0.4)}
+  #size-popup .preview-circle{border-radius:50%;background:rgba(255,255,255,0.4);transition:all 0.1s}
+  #size-popup-overlay{position:fixed;inset:0;z-index:59;display:none}
+  #size-popup-overlay.open{display:block}
 
   /* TOOLS DRAWER */
   #tools-drawer{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(14,14,22,0.98);border-top:1px solid rgba(130,100,220,0.2);transform:translateY(100%);transition:transform 0.3s ease;padding:14px 10px 20px;backdrop-filter:blur(12px)}
@@ -92,7 +112,6 @@
     .swatch{width:24px;height:24px}
     .seg-btn{width:26px;height:26px;font-size:9px}
     .btn{padding:6px 7px;font-size:9px;min-height:30px}
-    input[type="range"]{width:40px}
     #color-input{width:24px;height:24px}
     #welcome-inner .logo{font-size:30px;letter-spacing:5px}
     #welcome-inner .desc{font-size:12px;padding:0 8px}
@@ -143,18 +162,15 @@
       <div class="swatch active" style="background:#fff" data-color="#ffffff"></div>
       <div class="swatch" style="background:#FF6B6B" data-color="#FF6B6B"></div>
       <div class="swatch" style="background:#FBBF24" data-color="#FBBF24"></div>
-      <div class="swatch" style="background:#34D399" data-color="#34D399"></div>
       <div class="swatch" style="background:#38BDF8" data-color="#38BDF8"></div>
       <div class="swatch" style="background:#A855F7" data-color="#A855F7"></div>
-      <div class="swatch" style="background:#F472B6" data-color="#F472B6"></div>
-      <input type="color" id="color-input" value="#ffffff" title="Custom">
+      <div id="color-picker-wrap"><input type="color" id="color-input" value="#ffffff" title="Pick any color"></div>
       <div class="tool-sep"></div>
       <button class="btn" id="btn-rainbow">Rainbow</button>
       <button class="btn" id="btn-glow">Glow</button>
     </div>
     <div class="tool-row">
-      <span class="tool-label">Size</span>
-      <input type="range" id="brush-size" min="1" max="40" value="3">
+      <button class="btn" id="btn-size"><span id="size-preview-dot"></span><span id="size-val">3</span></button>
       <div class="tool-sep"></div>
       <button class="seg-btn" data-seg="4">4</button>
       <button class="seg-btn" data-seg="6">6</button>
@@ -173,6 +189,15 @@
       <button class="btn btn-save" id="btn-download">Save PNG</button>
     </div>
   </div>
+</div>
+
+<!-- SIZE POPUP -->
+<div id="size-popup-overlay"></div>
+<div id="size-popup">
+  <span class="popup-title">Brush Size</span>
+  <div class="preview-circle" id="size-popup-preview"></div>
+  <input type="range" id="brush-size" min="1" max="40" value="3">
+  <span class="popup-val" id="size-popup-val">3</span>
 </div>
 
 <!-- TOOLS DRAWER -->
@@ -465,7 +490,31 @@ function updateToolUI(){
 // ===== TOOLBAR =====
 document.querySelectorAll('.swatch').forEach(function(sw){sw.addEventListener('click',function(){document.querySelectorAll('.swatch').forEach(function(s){s.classList.remove('active')});sw.classList.add('active');currentColor=sw.dataset.color;document.getElementById('color-input').value=currentColor})});
 document.getElementById('color-input').addEventListener('input',function(e){currentColor=e.target.value;document.querySelectorAll('.swatch').forEach(function(s){s.classList.remove('active')})});
-document.getElementById('brush-size').addEventListener('input',function(e){brushSize=parseInt(e.target.value)});
+document.getElementById('brush-size').addEventListener('input',function(e){
+  brushSize=parseInt(e.target.value);
+  document.getElementById('size-val').textContent=brushSize;
+  document.getElementById('size-popup-val').textContent=brushSize;
+  var dotSz=Math.max(4,Math.min(20,brushSize*0.6));
+  document.getElementById('size-preview-dot').style.width=dotSz+'px';
+  document.getElementById('size-preview-dot').style.height=dotSz+'px';
+  var prevSz=Math.max(6,Math.min(40,brushSize));
+  var prev=document.getElementById('size-popup-preview');
+  prev.style.width=prevSz+'px';prev.style.height=prevSz+'px';
+});
+
+// Size popup
+var sizePopup=document.getElementById('size-popup'),sizePopupOverlay=document.getElementById('size-popup-overlay');
+document.getElementById('btn-size').addEventListener('click',function(){
+  sizePopup.classList.add('open');sizePopupOverlay.classList.add('open');
+  // Sync current value
+  document.getElementById('brush-size').value=brushSize;
+  document.getElementById('size-popup-val').textContent=brushSize;
+  var prevSz=Math.max(6,Math.min(40,brushSize));
+  var prev=document.getElementById('size-popup-preview');
+  prev.style.width=prevSz+'px';prev.style.height=prevSz+'px';
+});
+function closeSizePopup(){sizePopup.classList.remove('open');sizePopupOverlay.classList.remove('open')}
+sizePopupOverlay.addEventListener('click',closeSizePopup);
 document.querySelectorAll('.seg-btn').forEach(function(btn){btn.addEventListener('click',function(){document.querySelectorAll('.seg-btn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');segments=parseInt(btn.dataset.seg);if(showGuides){guideCtx.clearRect(0,0,SIZE,SIZE);drawGuidesF()}})});
 document.getElementById('btn-rainbow').addEventListener('click',function(){rainbowMode=!rainbowMode;this.classList.toggle('active')});
 document.getElementById('btn-glow').addEventListener('click',function(){glowMode=!glowMode;this.classList.toggle('active')});
@@ -477,16 +526,56 @@ document.getElementById('btn-bg').addEventListener('click',function(){darkBg=!da
 
 // ===== EXPORT =====
 document.getElementById('btn-download').addEventListener('click',function(){
-  var pad=50,tc=document.createElement('canvas');tc.width=SIZE;tc.height=SIZE+pad;var tctx=tc.getContext('2d');
-  var cx=SIZE/2,cy=SIZE/2,maxR=SIZE/2;
-  tctx.fillStyle=darkBg?'#111118':'#f5f0eb';tctx.fillRect(0,0,SIZE,SIZE+pad);
-  tctx.save();tctx.beginPath();tctx.arc(cx,cy,maxR,0,Math.PI*2);tctx.clip();tctx.fillRect(0,0,SIZE,SIZE);tctx.drawImage(drawCanvas,0,0);tctx.restore();
-  tctx.beginPath();tctx.arc(cx,cy,maxR-1,0,Math.PI*2);tctx.strokeStyle=darkBg?'rgba(130,100,220,0.25)':'rgba(80,50,150,0.2)';tctx.lineWidth=2;tctx.stroke();
-  tctx.fillStyle=darkBg?'#0c0c12':'#e8e2da';tctx.fillRect(0,SIZE,SIZE,pad);
+  // High-res export: minimum 2048px, or 3x screen size
+  var exportSize=Math.max(2048, SIZE*3);
+  var scale=exportSize/SIZE;
+  var pad=Math.round(60*scale);
+  var tc=document.createElement('canvas');
+  tc.width=exportSize;tc.height=exportSize+pad;
+  var tctx=tc.getContext('2d');
+  var cx=exportSize/2,cy=exportSize/2,maxR=exportSize/2;
+
+  // Background
+  tctx.fillStyle=darkBg?'#111118':'#f5f0eb';
+  tctx.fillRect(0,0,exportSize,exportSize+pad);
+
+  // Circular clip + draw upscaled art
+  tctx.save();
+  tctx.beginPath();tctx.arc(cx,cy,maxR,0,Math.PI*2);tctx.clip();
+  tctx.fillRect(0,0,exportSize,exportSize);
+  // Scale up the drawing canvas
+  tctx.imageSmoothingEnabled=true;
+  tctx.imageSmoothingQuality='high';
+  tctx.drawImage(drawCanvas,0,0,SIZE,SIZE,0,0,exportSize,exportSize);
+  tctx.restore();
+
+  // Circle border
+  tctx.beginPath();tctx.arc(cx,cy,maxR-2,0,Math.PI*2);
+  tctx.strokeStyle=darkBg?'rgba(130,100,220,0.25)':'rgba(80,50,150,0.2)';
+  tctx.lineWidth=3;tctx.stroke();
+
+  // Watermark bar
+  tctx.fillStyle=darkBg?'#0c0c12':'#e8e2da';
+  tctx.fillRect(0,exportSize,exportSize,pad);
+
+  // Divider
+  tctx.beginPath();tctx.moveTo(exportSize*0.15,exportSize+2);tctx.lineTo(exportSize*0.85,exportSize+2);
+  tctx.strokeStyle=darkBg?'rgba(130,100,220,0.15)':'rgba(80,50,150,0.12)';
+  tctx.lineWidth=1;tctx.stroke();
+
+  // "Created by" text
   var dn=artistName||'Anonymous Artist';
-  tctx.font='600 '+Math.max(12,Math.round(SIZE*0.022))+'px Quicksand, sans-serif';tctx.textAlign='center';tctx.textBaseline='middle';
-  tctx.fillStyle=darkBg?'rgba(180,150,255,0.35)':'rgba(80,50,150,0.35)';tctx.fillText('Created by '+dn,SIZE/2,SIZE+pad*0.38);
-  tctx.font='400 '+Math.max(9,Math.round(SIZE*0.015))+'px Quicksand, sans-serif';tctx.fillStyle=darkBg?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.1)';tctx.fillText('mandoodle',SIZE/2,SIZE+pad*0.72);
+  var fontSize=Math.round(exportSize*0.018);
+  tctx.font='600 '+fontSize+'px Quicksand, sans-serif';
+  tctx.textAlign='center';tctx.textBaseline='middle';
+  tctx.fillStyle=darkBg?'rgba(180,150,255,0.4)':'rgba(80,50,150,0.4)';
+  tctx.fillText('Created by '+dn,exportSize/2,exportSize+pad*0.38);
+
+  // Mandoodle branding
+  tctx.font='400 '+Math.round(fontSize*0.7)+'px Quicksand, sans-serif';
+  tctx.fillStyle=darkBg?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.12)';
+  tctx.fillText('mandoodle',exportSize/2,exportSize+pad*0.72);
+
   var a=document.createElement('a');a.download='mandoodle-'+Date.now()+'.png';a.href=tc.toDataURL('image/png');a.click();
 });
 
